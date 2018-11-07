@@ -52,7 +52,7 @@ class AddBookmarkInlineForm extends PureComponent {
         <input type="text" name="title" placeholder="Title"
           onChange={this.handleChange} value={this.state.title}>
         </input>
-        <input type="text" name="title" placeholder="Notes"
+        <input type="text" name="notes" placeholder="Notes"
           onChange={this.handleChange} value={this.state.notes}>
         </input>
         <input type="text" name="tags" placeholder="Tags"
