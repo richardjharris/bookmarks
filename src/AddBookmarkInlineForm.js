@@ -33,7 +33,7 @@ class AddBookmarkInlineForm extends PureComponent {
       const className = hasError ? 'error' : '';
       return (<>
         <Field type="text" name={name} placeholder={niceName} className={className}
-          {...field} {...props} autocomplete={`bookmark-${name}`} />
+          {...field} {...props} autoComplete="off" />
         {hasError && <span className="error-message">{form.errors[name]}</span>}
         </>
       );
@@ -43,15 +43,14 @@ class AddBookmarkInlineForm extends PureComponent {
       initialValues={{ url: '', title: '', tags: '', notes: '' }}
       validationSchema={this.SCHEMA}
       onSubmit={this.handleSubmit}
-      isInitialValid={() => false}
     >
-    {({ isSubmitting, isValid }) => (
+    {({ isSubmitting }) => (
       <Form className="bookmarkForm">
         <Field name="url" component={TextInput} />
         <Field name="title" component={TextInput} />
         <Field name="notes" component={TextInput} />
         <Field name="tags" component={TextInput} />
-        <button type="submit" disabled={isSubmitting || !isValid}>
+        <button type="submit" disabled={isSubmitting}>
           Add Bookmark
         </button>
       </Form>
