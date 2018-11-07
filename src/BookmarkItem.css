@@ -1,0 +1,19 @@
+.item {
+  list-style: none;
+  background :none;
+  margin: 0;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.hoverLinks {
+  visibility: hidden;
+}
+
+.item:hover {
+  background: #ececec;
+}
+
+.item:hover .hoverLinks {
+  visibility: visible;
+}

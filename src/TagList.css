@@ -1,0 +1,17 @@
+.tagList {
+  display: flex;
+  flex-flow: row wrap;
+  padding: 5px;
+}
+
+.tag {
+  border: 1px solid gray;
+  border-radius: 0.2em;
+  padding: 5px;
+  margin: 5px;
+}
+
+.tag.selected {
+  background: rgb(14, 14, 83);
+  color: white;
+}

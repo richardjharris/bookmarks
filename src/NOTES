@@ -1,0 +1,65 @@
+Firebase schema is JSON tree
+Don't nest too much
+Key is utf8 max 768 bytes, no [.$#[]/etc.]
+No ascii control chars (0-31, 127) in keys or values
+--
+Edit can use modal.
+Delete will ask if sure.
+
+--
+
+No auth for now, it'll complicate things a lot.
+Firebase can handle some of it e.g.
+rules: {
+    users: {
+        $uid: { .write: "$uid === auth.uid" }
+    }
+    baskets: { .read: "auth.uid != null && query.orderByChild == 'owner'
+        && query.equalTo == auth.uid" }
+}
+Translating to db.ref("baskets").orderByChild("owner")
+                 .equalTo(auth.currentUser.uid)
+                 .on("value", cb)  
+https://firebase.google.com/docs/database/sec
+
+--
+
+Can enable Anonymous firebase user - then link the anonymous user id
+to a new user! Keeps data saved.
+
+--
+
+React learnin'
+
+ - Move state up. Subcomponents accept state val as a PROP, render it, use onChange
+   to send changs to a handleChange() function that calls this.props.onChange(value)
+ - Parent calls setState which triggers a render  
+ - Parent is source of truth
+
+Component hierarchy
+App (manages full item list)
+ * FilterableBookmarkList
+  * TagList
+  * SearchBox
+  * BookmarkList
+    * BookmarkItem
+ * AddBookmarkInlineForm
+ * BookmarkList(tag=todo)
+ * BookmarkList(tag=checklater)
+
+What is state? Probably just
+ - the item list (only in App - everywhere else, it's a prop)
+ - search box text
+ - selected tag list
+
+The item list is used by multiple items under App, therefore it should be managed by App
+Search box text can go in FilterableBookmarkList
+Same with selected tags
+
+Then handle the 'up' flow of data using callbacks.
+
+---
+
+Context can be used to pass 'global' data, such as preferred language, theme or authed
+user, so it doesn't have to be passed down.
+An alternative for some things is to pass an entire element down the chain.
