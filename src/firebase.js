@@ -21,7 +21,6 @@ firebase.firestore().enablePersistence()
     console.log(`Could not enable persistence: ${err.code}`)
   });
 
-
 export const provider = new firebase.auth.GoogleAuthProvider();
 export const auth = firebase.auth();
 

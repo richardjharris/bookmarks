@@ -20,27 +20,32 @@ class App extends Component {
     };
   }
 
-  database(ref) {
-    return firebase.database().ref(ref || 'bookmarks');
+  bookmarks() {
+    return firebase.firestore().collection('bookmarks');
   }
 
   // Load all bookmarks from Firebase, and monitor new ones
   componentDidMount() {
-    this.database().on('value', (snapshot) => {
-      let items = snapshot.val();
+    this.bookmarks().orderBy('added', 'desc')
+      .onSnapshot({ includeMetadataChanges: true }, snapshot => {    
       let newItems = [];
       let newTags = new Set([]);
-      // Sort bookmarks newest-first
-      for (const item of Object.keys(items).sort().reverse()) {
+
+      console.log(`Updating bookmarks: source = ${snapshot.metadata.fromCache ? 'cache' : 'server'}`)
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
         newItems.push({
-          id: item,
-          tags: {},  // default if missing - Firebase cannot handle empty objects
-          ...items[item],
+          ...data,
+          id: doc.id,
+          // Cached reads will be missing the server timestamp
+          added: (data.added ? data.added.toDate() : new Date()),
         })
-        for (const tag in items[item].tags) {
+        for (const tag in data.tags) {
           newTags.add(tag);
         }
-      }
+      });
+
       this.setState({
         items: newItems,
         tags: Array.from(newTags).sort(),
@@ -63,15 +68,13 @@ class App extends Component {
       ...data,
       username: this.state.username,
       tags: this.makeTagMap(data.tags),  // overwrites
-      added: firebase.database.ServerValue.TIMESTAMP,
+      added: firebase.firestore.FieldValue.serverTimestamp(),
     }
-    this.database().push(item);
-    // Indicate success so the form can clear itself
-    return true;
+    return this.bookmarks().add(item);
   }
 
   removeItem = itemId => {
-    this.database(`/bookmarks/${itemId}`).remove();
+    this.bookmarks().doc(itemId).delete();
   }
 
   render() {
@@ -99,16 +102,20 @@ class App extends Component {
     return (
       <div className="app">
         {header}
-        <div className="content">
-          { this.state.items.length
-          ? <FilterableBookmarkList
-              items={this.state.items}
-              tags={this.state.tags}
-              removeItem={this.removeItem}
-            />
-          : <p>There are no bookmarks. Add one using the form on the left.</p>
-          }
-          <div className="sidebar">
+        <div className="flexContainer">
+          <main className="content">
+            { this.state.items.length
+            ? <FilterableBookmarkList
+                items={this.state.items}
+                tags={this.state.tags}
+                removeItem={this.removeItem}
+              />
+            : <p className="pad">
+                There are no bookmarks. Add one using the form on the left.
+              </p>
+            }
+          </main>
+          <aside className="sidebar">
             <section className="addItem">
               <h2>add new</h2>
               <AddBookmarkInlineForm
@@ -116,7 +123,7 @@ class App extends Component {
               />
             </section>
             {sidebarLists}
-          </div>
+          </aside>
         </div>
       </div>
     )

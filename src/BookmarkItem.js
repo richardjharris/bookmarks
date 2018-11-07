@@ -1,8 +1,8 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import TimeAgo from 'react-timeago';
 import './BookmarkItem.css';
 
-class BookmarkItem extends PureComponent {
+class BookmarkItem extends Component {
   editItem = (e) => {
     e.preventDefault();
     this.props.editItem(this.props.bookmark.id);

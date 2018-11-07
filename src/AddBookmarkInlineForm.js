@@ -31,10 +31,14 @@ class AddBookmarkInlineForm extends PureComponent {
       return;
     }
 
-    if (this.props.onSubmit(this.state)) {
+    this.props.onSubmit(this.state).then(() => {
       // Accepted
       this.setState({ url: '', title: '', tags: '', notes: '' });
-    }
+    })
+    .catch(error => {
+      // Server error, or client-side validation doesn't match the server
+      console.error(`Failed to add bookmark: {error}`);
+    });
   }
 
   render() {
