@@ -1,66 +1,62 @@
 import React, { PureComponent } from 'react';
+import { Formik, Form, Field } from 'formik';
+import * as yup from 'yup';
 
 class AddBookmarkInlineForm extends PureComponent {
-  constructor(props) {
-    super(props);
-    this.state = {
-      url: '',
-      title: '',
-      tags: '',
-      notes: '',
-    };
-  }
-
-  canBeSubmitted = () => {
-    const { url, title } = this.state;
-    return url.length > 0 && title.length > 0;
-  }
-
-  handleChange = e => {
-    this.setState({
-      [e.target.name]: e.target.value,
-    });
-  }
-
-  handleSubmit = e => {
-    e.preventDefault();
-
-    // Prevent submission via Enter key (which can happen even
-    // if the button is disabled)
-    if (!this.canBeSubmitted()) {
-      return;
-    }
-
-    this.props.onSubmit(this.state).then(() => {
-      // Accepted
-      this.setState({ url: '', title: '', tags: '', notes: '' });
+  handleSubmit = (values, actions) => {
+    this.props.onSubmit(values).then(() => {
+       // Accepted
+       actions.setSubmitting(false);
+       actions.resetForm();
     })
     .catch(error => {
-      // Server error, or client-side validation doesn't match the server
-      console.error(`Failed to add bookmark: {error}`);
+      actions.setSubmitting(false);
+      actions.setErrors(error);
+      // actions.setStatus({ msg: 'Some arbitrary data });
     });
   }
 
-  render() {
-    const canBeSubmitted = this.canBeSubmitted();
+  TAG_MESSAGE = 'Must be space-separated tags using only letters, numbers and underscores.';
 
-    return (
-      <form onSubmit={this.handleSubmit} className="bookmarkForm">
-        <input type="text" name="url" placeholder="URL"
-          onChange={this.handleChange} value={this.state.url}>
-        </input>
-        <input type="text" name="title" placeholder="Title"
-          onChange={this.handleChange} value={this.state.title}>
-        </input>
-        <input type="text" name="notes" placeholder="Notes"
-          onChange={this.handleChange} value={this.state.notes}>
-        </input>
-        <input type="text" name="tags" placeholder="Tags"
-          onChange={this.handleChange} value={this.state.tags}>
-        </input>
-        <button disabled={!canBeSubmitted}>Add Bookmark</button>
-      </form>
-    );
+  SCHEMA = yup.object().shape({
+    url: yup.string().url('Not a valid URL').required(),
+    title: yup.string().required(),
+    tags: yup.string().lowercase()
+      .matches(/^\s*\w+(\s*\w+)*?\s*$/, { message: this.TAG_MESSAGE }),
+    notes: yup.string(),
+  });
+
+  render() {
+    const TextInput = ({ field: { name, ...field }, form, ...props }) => {
+      const hasError = form.touched[name] && form.errors[name];
+      const niceName = name.charAt(0).toUpperCase() + name.slice(1);
+      const className = hasError ? 'error' : '';
+      return (<>
+        <Field type="text" name={name} placeholder={niceName} className={className}
+          {...field} {...props} autocomplete={`bookmark-${name}`} />
+        {hasError && <span className="error-message">{form.errors[name]}</span>}
+        </>
+      );
+    };
+
+    return (<Formik
+      initialValues={{ url: '', title: '', tags: '', notes: '' }}
+      validationSchema={this.SCHEMA}
+      onSubmit={this.handleSubmit}
+      isInitialValid={() => false}
+    >
+    {({ isSubmitting, isValid }) => (
+      <Form className="bookmarkForm">
+        <Field name="url" component={TextInput} />
+        <Field name="title" component={TextInput} />
+        <Field name="notes" component={TextInput} />
+        <Field name="tags" component={TextInput} />
+        <button type="submit" disabled={isSubmitting || !isValid}>
+          Add Bookmark
+        </button>
+      </Form>
+    )}
+    </Formik>);
   }
 }
 

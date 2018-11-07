@@ -21,6 +21,14 @@ input {
   border: 1px solid rgb(164, 165, 182);
 }
 
+input.error {
+  border: 1px solid red;
+}
+span.error-message {
+  font-size: 8pt;
+  color: red;
+}
+
 h1, h2, p, ul { margin: 0 }
 
 code {
