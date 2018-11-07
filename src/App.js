@@ -1,8 +1,11 @@
 import React, { Component } from 'react';
+import firebase from './firebase.js';
+import ReactModal from 'react-modal';
+
 import BookmarkList from './BookmarkList';
 import FilterableBookmarkList from './FilterableBookmarkList';
 import AddBookmarkInlineForm from './AddBookmarkInlineForm';
-import firebase from './firebase.js';
+import BookmarkItem from './BookmarkItem';
 import './App.css';
 
 /*
@@ -17,7 +20,21 @@ class App extends Component {
       username: 'rjh',
       items: [],
       tags: [],
+      // If set, display a modal for deleting a bookmark
+      modalDelete: null,
     };
+    this.addItemFromFormData({
+      url: "http://www.google.com/" + Math.random(10),
+      title: "Foo " + Math.random(),
+      notes: '',
+      tags: 'random',
+    })
+  }
+
+  handleModalClose = () => {
+    this.setState({
+      modalDelete: null,
+    })
   }
 
   bookmarks() {
@@ -53,29 +70,40 @@ class App extends Component {
     });
   }
 
-  makeTagMap = (tagString) => {
-    let tags = {};
-    const nonEmpty = tag => tag.match(/\S/);
+  addItemFromFormData = data => {
+    function makeTagMap(tagString) {
+      let tags = {};
+      const nonEmpty = tag => tag.match(/\S/);
+  
+      tagString.split(/\s+/).filter(nonEmpty).forEach(tag => {
+        tags[tag] = true;
+      });
+      return tags;
+    }
 
-    tagString.split(/\s+/).filter(nonEmpty).forEach(tag => {
-      tags[tag] = true;
-    });
-    return tags;
-  }
-
-  handleAddBookmarkFormSubmit = data => {
     const item = {
       ...data,
       username: this.state.username,
-      tags: this.makeTagMap(data.tags),  // overwrites
+      tags: makeTagMap(data.tags),  // overwrites
       added: firebase.firestore.FieldValue.serverTimestamp(),
     }
     return this.bookmarks().add(item);
   }
 
-  removeItem = itemId => {
-    this.bookmarks().doc(itemId).delete();
+  removeItem = item => {
+    this.bookmarks().doc(item.id).delete();
   }
+
+  promptToRemoveItem = (item, event) => {
+    if (event.shiftKey) {
+      // Delete immediately without prompting
+      this.removeItem(item);
+    }
+    else {
+      // Display a modal
+      this.setState({modalDelete: item});
+    }
+  };
 
   render() {
     const header = (
@@ -92,7 +120,7 @@ class App extends Component {
         <section key={tag}>
           <h2>{tag}</h2>
           { tagItems.length > 0
-          ? <BookmarkList items={tagItems} removeItem={this.removeItem} />
+          ? <BookmarkList items={tagItems} removeItem={this.promptToRemoveItem} />
           : <p className="spad">There are no {tag} items.</p>
           }
         </section>
@@ -108,7 +136,7 @@ class App extends Component {
             ? <FilterableBookmarkList
                 items={this.state.items}
                 tags={this.state.tags}
-                removeItem={this.removeItem}
+                removeItem={this.promptToRemoveItem}
               />
             : <p className="pad">
                 There are no bookmarks. Add one using the form on the left.
@@ -119,12 +147,31 @@ class App extends Component {
             <section className="addItem">
               <h2>add new</h2>
               <AddBookmarkInlineForm
-                onSubmit={this.handleAddBookmarkFormSubmit}
+                onSubmit={this.addItemFromFormData}
               />
             </section>
             {sidebarLists}
           </aside>
         </div>
+        <ReactModal isOpen={!!this.state.modalDelete}
+          contentLabel="Delete?"
+          onRequestClose={this.handleModalClose}
+        >
+          <p>Really delete this bookmark?</p>
+          {/* modal is rendered while modalDelete is null, sometimes */}
+          {this.state.modalDelete &&
+            <BookmarkItem bookmark={this.state.modalDelete} noHoverLinks={true} />
+          }
+          <button onClick={() => {
+            this.removeItem(this.state.modalDelete);
+            this.handleModalClose()
+          }}>
+            Delete
+          </button>
+          <button onClick={this.handleModalClose}>
+            Cancel
+          </button>
+        </ReactModal>
       </div>
     )
   }
