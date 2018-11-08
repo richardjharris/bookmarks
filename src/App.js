@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
 import firebase from './firebase.js';
-import ReactModal from 'react-modal';
 
 import BookmarkList from './BookmarkList';
 import FilterableBookmarkList from './FilterableBookmarkList';
 import AddBookmarkInlineForm from './AddBookmarkInlineForm';
-import BookmarkItem from './BookmarkItem';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
 import './App.css';
 
 /*
@@ -153,25 +152,11 @@ class App extends Component {
             {sidebarLists}
           </aside>
         </div>
-        <ReactModal isOpen={!!this.state.modalDelete}
-          contentLabel="Delete?"
-          onRequestClose={this.handleModalClose}
-        >
-          <p>Really delete this bookmark?</p>
-          {/* modal is rendered while modalDelete is null, sometimes */}
-          {this.state.modalDelete &&
-            <BookmarkItem bookmark={this.state.modalDelete} noHoverLinks={true} />
-          }
-          <button onClick={() => {
-            this.removeItem(this.state.modalDelete);
-            this.handleModalClose()
-          }}>
-            Delete
-          </button>
-          <button onClick={this.handleModalClose}>
-            Cancel
-          </button>
-        </ReactModal>
+        <ConfirmDeleteModal
+          target={this.state.modalDelete}
+          onClose={this.handleModalClose}
+          onDelete={this.removeItem}
+        />
       </div>
     )
   }

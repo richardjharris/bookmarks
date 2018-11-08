@@ -10,6 +10,8 @@ Can enable Anonymous firebase user - then link the anonymous user id
 to a new user! Keeps data saved. (I think)
 Other auth for firestore - not sure yet. We don't need to use /users/$id/etc
   anymore.
+--
+Animate new items (but not on first load)
 
 --
 
