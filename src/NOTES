@@ -18,3 +18,13 @@ Animate new items (but not on first load)
 Context can be used to pass 'global' data, such as preferred language, theme or authed
 user, so it doesn't have to be passed down.
 An alternative for some things is to pass an entire element down the chain.
+
+--
+
+It's useful to fetch the title if missing, as well as a suitable picture or favicon
+This could be done via Cloud Functions when the data is submitted?
+(more useful to do in the background though)
+
+Functions could be used to detect dead links.
+
+checklater URLs should have lastVisited date tracked.

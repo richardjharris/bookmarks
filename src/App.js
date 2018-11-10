@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import firebase from './firebase.js';
 
+import BookmarkDatabase from './BookmarkDatabase';
 import BookmarkList from './BookmarkList';
 import FilterableBookmarkList from './FilterableBookmarkList';
 import AddBookmarkInlineForm from './AddBookmarkInlineForm';
@@ -22,12 +22,6 @@ class App extends Component {
       // If set, display a modal for deleting a bookmark
       modalDelete: null,
     };
-    this.addItemFromFormData({
-      url: "http://www.google.com/" + Math.random(10),
-      title: "Foo " + Math.random(),
-      notes: '',
-      tags: 'random',
-    })
   }
 
   handleModalClose = () => {
@@ -36,14 +30,9 @@ class App extends Component {
     })
   }
 
-  bookmarks() {
-    return firebase.firestore().collection('bookmarks');
-  }
-
-  // Load all bookmarks from Firebase, and monitor new ones
+  // Load all bookmarks, and monitor new ones
   componentDidMount() {
-    this.bookmarks().orderBy('added', 'desc')
-      .onSnapshot({ includeMetadataChanges: true }, snapshot => {    
+    BookmarkDatabase.watch(snapshot => {
       let newItems = [];
       let newTags = new Set([]);
 
@@ -66,6 +55,7 @@ class App extends Component {
         items: newItems,
         tags: Array.from(newTags).sort(),
       });
+      
     });
   }
 
@@ -84,13 +74,12 @@ class App extends Component {
       ...data,
       username: this.state.username,
       tags: makeTagMap(data.tags),  // overwrites
-      added: firebase.firestore.FieldValue.serverTimestamp(),
     }
-    return this.bookmarks().add(item);
+    return BookmarkDatabase.add(item);
   }
 
   removeItem = item => {
-    this.bookmarks().doc(item.id).delete();
+    return BookmarkDatabase.remove(item);
   }
 
   promptToRemoveItem = (item, event) => {
@@ -125,7 +114,6 @@ class App extends Component {
         </section>
       );
     });
-
     return (
       <div className="app">
         {header}
